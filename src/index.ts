@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import { createServerConfig } from "./config/index.js";
 import { RingMCPServer } from "./server.js";
 
-config({ debug: false });
+config({ debug: false, quiet: true });
 
 async function main() {
 	try {

@@ -10,17 +10,12 @@ export class ListDevicesTool extends BaseTool {
 	} as const;
 
 	async execute(): Promise<ToolResponse> {
+		console.error("[ListDevices] Executing device enumeration...");
 		this.validateRingApi();
+		console.error("[ListDevices] Validated Ring API instance");
 
 		try {
-			const timeoutPromise = new Promise((_, reject) => {
-				setTimeout(() => reject(new Error("Operation timed out after 10 seconds")), 10000);
-			});
-
-			const operationPromise = this.performDeviceListOperation();
-
-			const result = await Promise.race([operationPromise, timeoutPromise]);
-			return result as ToolResponse;
+			return (await this.performDeviceListOperation()) as ToolResponse;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 			console.error("[ListDevices] Error:", errorMessage);
@@ -55,6 +50,7 @@ export class ListDevicesTool extends BaseTool {
 			}
 
 			try {
+				console.error(`[ListDevices] Fetching additional devices for ${location.name}`);
 				const devices = await location.getDevices();
 				console.error(`[ListDevices] Found ${devices.length} other device(s) in ${location.name}`);
 
