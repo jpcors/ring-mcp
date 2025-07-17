@@ -1,3 +1,3 @@
-export { StdioTransportManager } from "./stdio-transport";
-export { HttpTransportManager } from "./http-transport";
-export { TransportFactory, TransportManager } from "./transport-factory";
+export { HttpTransportManager } from "./http-transport.js";
+export { StdioTransportManager } from "./stdio-transport.js";
+export { createTransport, TransportManager } from "./transport-factory.js";

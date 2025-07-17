@@ -1,12 +1,9 @@
-import type { Tool } from "@modelcontextprotocol/sdk/types";
-import type { RingApi } from "ring-client-api";
-import type { BaseTool, ToolArguments } from "./base-tool";
-import type { ToolResponse } from "../types/index";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import type { ToolResponse } from "../types/index.js";
+import type { BaseTool, ToolArguments } from "./base-tool.js";
 
 export class ToolRegistry {
 	private tools = new Map<string, BaseTool>();
-
-	constructor(private ringApi: RingApi) {}
 
 	register(tool: BaseTool): void {
 		this.tools.set(tool.name, tool);
@@ -30,8 +27,7 @@ export class ToolRegistry {
 		try {
 			return await tool.execute(args);
 		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : String(error);
+			const errorMessage = error instanceof Error ? error.message : String(error);
 			return {
 				content: [
 					{

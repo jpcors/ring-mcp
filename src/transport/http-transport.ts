@@ -1,14 +1,14 @@
-import type { Server } from "@modelcontextprotocol/sdk/server/index";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse";
-import { createServer, type Server as HTTPServer } from "http";
-import type { ServerOptions } from "../types/index";
+import { createServer, type Server as HTTPServer } from "node:http";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import type { ServerOptions } from "../types/index.js";
 
 export class HttpTransportManager {
 	private httpServer?: HTTPServer;
 
 	constructor(
 		private server: Server,
-		private options: ServerOptions,
+		private options: ServerOptions
 	) {}
 
 	async start(): Promise<void> {
@@ -30,13 +30,15 @@ export class HttpTransportManager {
 			}
 
 			if (req.url === "/mcp" && req.method === "POST") {
-				let body = "";
-				req.on("data", (chunk) => (body += chunk));
+				let _body = "";
+				req.on("data", (chunk) => {
+					_body += chunk;
+				});
 				req.on("end", async () => {
 					try {
 						const transport = new SSEServerTransport("/mcp", res);
 						await this.server.connect(transport);
-					} catch (error) {
+					} catch (_error) {
 						res.writeHead(500, { "Content-Type": "application/json" });
 						res.end(JSON.stringify({ error: "MCP connection failed" }));
 					}
@@ -64,20 +66,20 @@ export class HttpTransportManager {
 		});
 
 		return new Promise((resolve, reject) => {
-			this.httpServer!.listen(port, host, () => {
-				console.log(`Ring MCP server running on http://${host}:${port}/mcp`);
-				console.log(`Health check available at http://${host}:${port}/health`);
+			this.httpServer?.listen(port, host, () => {
+				console.error(`Ring MCP server running on http://${host}:${port}/mcp`);
+				console.error(`Health check available at http://${host}:${port}/health`);
 				resolve();
 			});
 
-			this.httpServer!.on("error", reject);
+			this.httpServer?.on("error", reject);
 		});
 	}
 
 	async stop(): Promise<void> {
 		if (this.httpServer) {
 			return new Promise((resolve) => {
-				this.httpServer!.close(() => {
+				this.httpServer?.close(() => {
 					resolve();
 				});
 			});

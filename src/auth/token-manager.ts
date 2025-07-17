@@ -1,6 +1,6 @@
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { RingApi } from "ring-client-api";
-import type { TokenConfig, AuthenticationOptions } from "./types";
+import type { AuthenticationOptions, TokenConfig } from "./types.js";
 
 export class TokenManager {
 	private configFilePath: string;
@@ -12,25 +12,26 @@ export class TokenManager {
 	}
 
 	async getRefreshToken(): Promise<string> {
-		const tokenFromArgs = process.argv.find((arg) =>
-			arg.startsWith("--token="),
-		);
+		const tokenFromArgs = process.argv.find((arg) => arg.startsWith("--token="));
 		if (tokenFromArgs) {
 			const token = tokenFromArgs.split("=")[1];
-			console.log("[Ring MCP] Using token from command line argument");
+			console.error("[Ring MCP] Using token from command line argument");
+
+			if (!token) {
+				throw new Error("[Ring MCP] No token provided in command line argument");
+			}
+
 			return token;
 		}
 
 		if (process.env.RING_REFRESH_TOKEN) {
-			console.log(
-				"[Ring MCP] Using token from RING_REFRESH_TOKEN environment variable",
-			);
+			console.error("[Ring MCP] Using token from RING_REFRESH_TOKEN environment variable");
 			return process.env.RING_REFRESH_TOKEN;
 		}
 
 		const configToken = this.loadTokenConfig();
 		if (configToken) {
-			console.log("[Ring MCP] Using token from config file");
+			console.error("[Ring MCP] Using token from config file");
 			return configToken.refreshToken;
 		}
 		throw new Error(`No Ring refresh token found. Please authenticate first by running:
@@ -63,38 +64,31 @@ The server cannot start without valid Ring credentials.`);
 				lastUpdated: new Date().toISOString(),
 			};
 
-			writeFileSync(
-				this.configFilePath,
-				JSON.stringify(config, null, 2),
-				"utf8",
-			);
-			console.log("[Ring MCP] Successfully saved updated token to config file");
+			writeFileSync(this.configFilePath, JSON.stringify(config, null, 2), "utf8");
+			console.error("[Ring MCP] Successfully saved updated token to config file");
 		} catch (error) {
 			console.error("[Ring MCP] Failed to save token to config file:", error);
 			console.error(
-				"[Ring MCP] WARNING: Push notifications may stop working if token is not manually updated",
+				"[Ring MCP] WARNING: Push notifications may stop working if token is not manually updated"
 			);
 		}
 	}
 
 	async validateRingConnection(ringApi: RingApi): Promise<void> {
-		const retryDelay = (attempt: number) =>
-			Math.min(1000 * 2 ** attempt, 10000);
+		const retryDelay = (attempt: number) => Math.min(1000 * 2 ** attempt, 10000);
 
 		for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
 			try {
-				console.log("[Ring MCP] Validating Ring API connection...");
+				console.error("[Ring MCP] Validating Ring API connection...");
 				const locations = await ringApi.getLocations();
-				console.log(
-					`[Ring MCP] Connected successfully to ${locations.length} location(s)`,
-				);
+				console.error(`[Ring MCP] Connected successfully to ${locations.length} location(s)`);
 				return;
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error);
 				console.error(
 					`[Ring MCP] Ring API connection validation failed (attempt ${
 						attempt + 1
-					}/${this.maxRetries + 1}): ${errorMsg}`,
+					}/${this.maxRetries + 1}): ${errorMsg}`
 				);
 
 				if (attempt === this.maxRetries) {
@@ -111,23 +105,21 @@ Please run 'npm run auth' to get a fresh token.`);
 				}
 
 				const delay = retryDelay(attempt);
-				console.log(`[Ring MCP] Retrying in ${delay}ms...`);
+				console.error(`[Ring MCP] Retrying in ${delay}ms...`);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 			}
 		}
 	}
 
 	setupTokenRefreshCallback(ringApi: RingApi): void {
-		ringApi.onRefreshTokenUpdated.subscribe(
-			({ newRefreshToken, oldRefreshToken }) => {
-				console.log(
-					`[Ring MCP] Refresh token updated from ${
-						oldRefreshToken?.substring(0, 10) || "unknown"
-					}... to ${newRefreshToken.substring(0, 10)}...`,
-				);
-				this.saveTokenConfig(newRefreshToken);
-			},
-		);
+		ringApi.onRefreshTokenUpdated.subscribe(({ newRefreshToken, oldRefreshToken }) => {
+			console.error(
+				`[Ring MCP] Refresh token updated from ${
+					oldRefreshToken?.substring(0, 10) || "unknown"
+				}... to ${newRefreshToken.substring(0, 10)}...`
+			);
+			this.saveTokenConfig(newRefreshToken);
+		});
 	}
 
 	async initializeRingApi(): Promise<RingApi> {
@@ -141,7 +133,7 @@ Please run 'npm run auth' to get a fresh token.`);
 		this.setupTokenRefreshCallback(ringApi);
 		await this.validateRingConnection(ringApi);
 
-		console.log("[Ring MCP] Ring API initialized and validated successfully");
+		console.error("[Ring MCP] Ring API initialized and validated successfully");
 		return ringApi;
 	}
 }

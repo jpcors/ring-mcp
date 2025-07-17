@@ -1,5 +1,5 @@
-import { BaseTool, type ToolArguments } from "./base-tool";
-import type { ToolResponse } from "../types/index";
+import type { ToolResponse } from "../types/index.js";
+import { BaseTool, type ToolArguments } from "./base-tool.js";
 
 export class TurnLightOnOffTool extends BaseTool {
 	readonly name = "turn_light_on_off";
@@ -33,12 +33,10 @@ export class TurnLightOnOffTool extends BaseTool {
 
 		for (const location of locations) {
 			const camera = location.cameras.find((c) => c.id.toString() === deviceId);
-			if (camera && camera.hasLight) {
+			if (camera?.hasLight) {
 				await camera.setLight(on);
 				return this.createTextResponse(
-					`Successfully turned light ${on ? "on" : "off"} for camera "${
-						camera.name
-					}"`,
+					`Successfully turned light ${on ? "on" : "off"} for camera "${camera.name}"`
 				);
 			}
 
@@ -46,14 +44,11 @@ export class TurnLightOnOffTool extends BaseTool {
 			const device = devices.find((d) => d.id.toString() === deviceId);
 			if (
 				device &&
-				(device.deviceType.toString().includes("light") ||
-					device.data.categoryId === 2)
+				(device.deviceType.toString().includes("light") || device.data.categoryId === 2)
 			) {
 				await device.setInfo({ device: { v1: { on } } });
 				return this.createTextResponse(
-					`Successfully turned light ${on ? "on" : "off"} for device "${
-						device.name
-					}"`,
+					`Successfully turned light ${on ? "on" : "off"} for device "${device.name}"`
 				);
 			}
 		}

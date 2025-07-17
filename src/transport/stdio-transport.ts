@@ -1,5 +1,5 @@
-import type { Server } from "@modelcontextprotocol/sdk/server/index";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 export class StdioTransportManager {
 	constructor(private server: Server) {}
@@ -7,6 +7,6 @@ export class StdioTransportManager {
 	async start(): Promise<void> {
 		const transport = new StdioServerTransport();
 		await this.server.connect(transport);
-		console.log("Ring MCP server running on stdio");
+		console.error("Ring MCP server running on stdio");
 	}
 }

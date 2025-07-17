@@ -1,5 +1,5 @@
-import { BaseTool, type ToolArguments } from "./base-tool";
-import type { ToolResponse, DeviceInfo } from "../types/index";
+import type { DeviceInfo, ToolResponse } from "../types/index.js";
+import { BaseTool, type ToolArguments } from "./base-tool.js";
 
 export class ListDevicesTool extends BaseTool {
 	readonly name = "list_devices";
@@ -12,12 +12,35 @@ export class ListDevicesTool extends BaseTool {
 	async execute(): Promise<ToolResponse> {
 		this.validateRingApi();
 
+		try {
+			const timeoutPromise = new Promise((_, reject) => {
+				setTimeout(() => reject(new Error("Operation timed out after 10 seconds")), 10000);
+			});
+
+			const operationPromise = this.performDeviceListOperation();
+
+			const result = await Promise.race([operationPromise, timeoutPromise]);
+			return result as ToolResponse;
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+			console.error("[ListDevices] Error:", errorMessage);
+			return this.createTextResponse(`Error listing devices: ${errorMessage}`);
+		}
+	}
+
+	private async performDeviceListOperation(): Promise<ToolResponse> {
+		console.error("[ListDevices] Starting device enumeration...");
+
 		const locations = await this.ringApi.getLocations();
+		console.error(`[ListDevices] Found ${locations.length} location(s)`);
+
 		const allDevices: DeviceInfo[] = [];
 
-		for (const location of locations) {
+		for (const [index, location] of locations.entries()) {
+			console.error(`[ListDevices] Processing location ${index + 1}: ${location.name}`);
+
 			const cameras = location.cameras;
-			const devices = await location.getDevices();
+			console.error(`[ListDevices] Found ${cameras.length} camera(s) in ${location.name}`);
 
 			for (const camera of cameras) {
 				allDevices.push({
@@ -31,27 +54,37 @@ export class ListDevicesTool extends BaseTool {
 				});
 			}
 
-			for (const device of devices) {
-				allDevices.push({
-					id: device.id,
-					name: device.name,
-					type: device.deviceType,
-					categoryId: device.data.categoryId,
-					location: location.name,
-					batteryLevel: device.data.batteryLevel ?? undefined,
-					online: device.data.faulted === false,
-				});
+			try {
+				const devices = await location.getDevices();
+				console.error(`[ListDevices] Found ${devices.length} other device(s) in ${location.name}`);
+
+				for (const device of devices) {
+					allDevices.push({
+						id: device.id,
+						name: device.name,
+						type: device.deviceType,
+						categoryId: device.data.categoryId,
+						location: location.name,
+						batteryLevel: device.data.batteryLevel ?? undefined,
+						online: device.data.faulted === false,
+					});
+				}
+			} catch (deviceError) {
+				console.error(
+					`[ListDevices] Warning: Failed to get additional devices for ${location.name}:`,
+					deviceError
+				);
 			}
 		}
 
+		console.error(`[ListDevices] Successfully enumerated ${allDevices.length} total device(s)`);
 		return this.createJsonResponse(allDevices);
 	}
 }
 
 export class GetDeviceInfoTool extends BaseTool {
 	readonly name = "get_device_info";
-	readonly description =
-		"Get detailed information about a specific Ring device";
+	readonly description = "Get detailed information about a specific Ring device";
 	readonly inputSchema = {
 		type: "object",
 		properties: {

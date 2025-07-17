@@ -1,14 +1,10 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index";
-import {
-	CallToolRequestSchema,
-	ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import type { RingApi } from "ring-client-api";
-
-import type { RingServerConfig } from "./config/index";
-import { TokenManager } from "./auth/token-manager";
-import { createToolRegistry, type ToolRegistry } from "./tools/index";
-import { TransportFactory, type TransportManager } from "./transport/index";
+import { TokenManager } from "./auth/token-manager.js";
+import type { RingServerConfig } from "./config/index.js";
+import { createToolRegistry, type ToolRegistry } from "./tools/index.js";
+import { createTransport, type TransportManager } from "./transport/index.js";
 
 export class RingMCPServer {
 	private server: Server;
@@ -27,7 +23,7 @@ export class RingMCPServer {
 				capabilities: {
 					tools: {},
 				},
-			},
+			}
 		);
 
 		this.tokenManager = new TokenManager({
@@ -35,10 +31,7 @@ export class RingMCPServer {
 			maxRetries: config.auth.maxRetries,
 		});
 
-		this.transportManager = TransportFactory.create(
-			this.server,
-			config.transport,
-		);
+		this.transportManager = createTransport(this.server, config.transport);
 
 		this.setupToolHandlers();
 		this.setupErrorHandling();
@@ -50,7 +43,7 @@ export class RingMCPServer {
 		this.ringApi = await this.tokenManager.initializeRingApi();
 		this.toolRegistry = createToolRegistry(this.ringApi);
 
-		console.log("[Ring MCP] Ring API and tools initialized successfully");
+		console.error("[Ring MCP] Ring API and tools initialized successfully");
 	}
 
 	private setupToolHandlers(): void {
@@ -60,7 +53,7 @@ export class RingMCPServer {
 			}
 
 			return {
-				tools: this.toolRegistry!.getToolDefinitions(),
+				tools: this.toolRegistry?.getToolDefinitions(),
 			};
 		});
 
@@ -69,10 +62,14 @@ export class RingMCPServer {
 				await this.initializeRingApi();
 			}
 
-			return await this.toolRegistry!.executeTool(
+			const result = await this.toolRegistry?.executeTool(
 				request.params.name,
-				request.params.arguments,
+				request.params.arguments
 			);
+			if (!result) {
+				throw new Error("Tool execution failed");
+			}
+			return result;
 		});
 	}
 
@@ -92,13 +89,8 @@ export class RingMCPServer {
 		});
 
 		process.on("unhandledRejection", (reason) => {
-			if (
-				reason instanceof Error &&
-				reason.message.includes("No Ring refresh token found")
-			) {
-				console.error(
-					"[Ring MCP] Authentication required. Please run: npm run auth",
-				);
+			if (reason instanceof Error && reason.message.includes("No Ring refresh token found")) {
+				console.error("[Ring MCP] Authentication required. Please run: npm run auth");
 				process.exit(1);
 			}
 			console.error("[Ring MCP] Unhandled rejection:", reason);
@@ -122,7 +114,7 @@ export class RingMCPServer {
 				await this.transportManager.stop();
 			}
 			await this.server.close();
-			console.log("[Ring MCP] Server stopped");
+			console.error("[Ring MCP] Server stopped");
 		} catch (error) {
 			console.error("[Ring MCP] Error stopping server:", error);
 		}

@@ -1,5 +1,5 @@
-import { BaseTool, type ToolArguments } from "./base-tool";
-import type { ToolResponse } from "../types/index";
+import type { ToolResponse } from "../types/index.js";
+import { BaseTool, type ToolArguments } from "./base-tool.js";
 
 export class ArmDisarmAlarmTool extends BaseTool {
 	readonly name = "arm_disarm_alarm";
@@ -40,10 +40,22 @@ export class ArmDisarmAlarmTool extends BaseTool {
 			throw new Error(`Location with ID ${locationId} not found`);
 		}
 
-		await location.setAlarmMode(mode as any);
+		// Map user-friendly mode names to Ring API modes
+		const modeMapping: Record<string, "all" | "some" | "none"> = {
+			home: "some",
+			away: "all",
+			disarmed: "none",
+		};
+
+		const ringMode = modeMapping[mode];
+		if (!ringMode) {
+			throw new Error(`Invalid mode: ${mode}`);
+		}
+
+		await location.setAlarmMode(ringMode);
 
 		return this.createTextResponse(
-			`Successfully set alarm mode to "${mode}" for location "${location.name}"`,
+			`Successfully set alarm mode to "${mode}" for location "${location.name}"`
 		);
 	}
 }

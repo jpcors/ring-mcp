@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-import { ServerConfig } from "./config/index";
-import { RingMCPServer } from "./server";
+import { config } from "dotenv";
+import { createServerConfig } from "./config/index.js";
+import { RingMCPServer } from "./server.js";
+
+config({ debug: false });
 
 async function main() {
 	try {
-		const config = ServerConfig.create();
+		const config = createServerConfig();
 		const server = new RingMCPServer(config);
 		await server.start();
 	} catch (error) {

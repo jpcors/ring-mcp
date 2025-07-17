@@ -1,4 +1,4 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export interface TokenConfig {
 	refreshToken: string;
@@ -32,7 +32,7 @@ export interface EventInfo {
 	deviceId: string | number;
 	deviceType?: string;
 	notificationKind?: string;
-	data: any;
+	data: unknown;
 }
 
 export type ToolResponse = CallToolResult;

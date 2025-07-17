@@ -1,5 +1,5 @@
-import { BaseTool, type ToolArguments } from "./base-tool";
-import type { ToolResponse } from "../types/index";
+import type { ToolResponse } from "../types/index.js";
+import { BaseTool, type ToolArguments } from "./base-tool.js";
 
 export class GetCameraSnapshotTool extends BaseTool {
 	readonly name = "get_camera_snapshot";
@@ -32,7 +32,7 @@ export class GetCameraSnapshotTool extends BaseTool {
 				const base64Image = snapshot.toString("base64");
 
 				return this.createTextResponse(
-					`Snapshot captured from camera "${camera.name}". Image data: ${base64Image.length} bytes (base64 encoded)`,
+					`Snapshot captured from camera "${camera.name}". Image data: ${base64Image.length} bytes (base64 encoded)`
 				);
 			}
 		}
