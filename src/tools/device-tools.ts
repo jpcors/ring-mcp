@@ -26,7 +26,12 @@ export class ListDevicesTool extends BaseTool {
 	private async performDeviceListOperation(): Promise<ToolResponse> {
 		console.error("[ListDevices] Starting device enumeration...");
 
-		const locations = await this.ringApi.getLocations();
+		console.error("[ListDevices] About to call getLocations()...");
+		const locations = await this.withTimeout(
+			this.ringApi.getLocations(),
+			1000,
+			"getLocations() call timed out"
+		);
 		console.error(`[ListDevices] Found ${locations.length} location(s)`);
 
 		const allDevices: DeviceInfo[] = [];
@@ -51,7 +56,13 @@ export class ListDevicesTool extends BaseTool {
 
 			try {
 				console.error(`[ListDevices] Fetching additional devices for ${location.name}`);
-				const devices = await location.getDevices();
+				console.error(`[ListDevices] About to call location.getDevices()...`);
+				const devices = await this.withTimeout(
+					location.getDevices(),
+					1000,
+					`getDevices() call timed out for location ${location.name}`
+				);
+				console.error(`[ListDevices] location.getDevices() completed successfully`);
 				console.error(`[ListDevices] Found ${devices.length} other device(s) in ${location.name}`);
 
 				for (const device of devices) {
@@ -74,7 +85,10 @@ export class ListDevicesTool extends BaseTool {
 		}
 
 		console.error(`[ListDevices] Successfully enumerated ${allDevices.length} total device(s)`);
-		return this.createJsonResponse(allDevices);
+		console.error(`[ListDevices] About to create JSON response...`);
+		const response = this.createJsonResponse(allDevices);
+		console.error(`[ListDevices] JSON response created successfully`);
+		return response;
 	}
 }
 
@@ -100,11 +114,19 @@ export class GetDeviceInfoTool extends BaseTool {
 			throw new Error("Device ID is required");
 		}
 
-		const locations = await this.ringApi.getLocations();
+		const locations = await this.withTimeout(
+			this.ringApi.getLocations(),
+			1000,
+			"getLocations() call timed out"
+		);
 
 		for (const location of locations) {
 			const cameras = location.cameras;
-			const devices = await location.getDevices();
+			const devices = await this.withTimeout(
+				location.getDevices(),
+				1000,
+				`getDevices() call timed out for location ${location.name}`
+			);
 
 			const camera = cameras.find((c) => c.id.toString() === deviceId);
 			if (camera) {

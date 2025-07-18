@@ -8,5 +8,6 @@ export class StdioTransportManager {
 		const transport = new StdioServerTransport();
 		await this.server.connect(transport);
 		console.error("Ring MCP server running on stdio");
+		console.error("[Ring MCP] Server ready - waiting for MCP client connections...");
 	}
 }

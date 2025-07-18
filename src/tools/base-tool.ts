@@ -43,4 +43,16 @@ export abstract class BaseTool {
 	protected createJsonResponse(data: unknown): ToolResponse {
 		return this.createTextResponse(JSON.stringify(data, null, 2));
 	}
+
+	protected async withTimeout<T>(
+		promise: Promise<T>,
+		timeoutMs: number,
+		errorMessage: string
+	): Promise<T> {
+		const timeoutPromise = new Promise<never>((_, reject) => {
+			setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+		});
+
+		return Promise.race([promise, timeoutPromise]);
+	}
 }

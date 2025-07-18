@@ -18,6 +18,7 @@ export class ToolRegistry {
 	}
 
 	async executeTool(name: string, args?: ToolArguments): Promise<ToolResponse> {
+		console.error(`[ToolRegistry] Executing tool: ${name}`);
 		const tool = this.tools.get(name);
 
 		if (!tool) {
@@ -25,8 +26,12 @@ export class ToolRegistry {
 		}
 
 		try {
-			return await tool.execute(args);
+			console.error(`[ToolRegistry] About to execute tool: ${name}`);
+			const result = await tool.execute(args);
+			console.error(`[ToolRegistry] Tool execution completed: ${name}`);
+			return result;
 		} catch (error) {
+			console.error(`[ToolRegistry] Tool execution failed: ${name}`, error);
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			return {
 				content: [

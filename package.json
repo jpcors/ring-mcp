@@ -13,7 +13,8 @@
 		"test": "jest",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"format": "biome format . --write"
+		"format": "biome format . --write",
+		"inspect": "npm run build && npx @modelcontextprotocol/inspector build/index.js"
 	},
 	"keywords": [
 		"mcp",
