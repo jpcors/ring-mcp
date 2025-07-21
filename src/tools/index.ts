@@ -15,16 +15,16 @@ import { TurnLightOnOffTool } from "./light-tools.js";
 import { ToolRegistry } from "./tool-registry.js";
 
 export function createToolRegistry(ringApi: RingApi): ToolRegistry {
-	const registry = new ToolRegistry();
+  const registry = new ToolRegistry();
 
-	registry.registerMultiple([
-		new ListDevicesTool(ringApi),
-		new GetDeviceInfoTool(ringApi),
-		new ArmDisarmAlarmTool(ringApi),
-		new GetCameraSnapshotTool(ringApi),
-		new TurnLightOnOffTool(ringApi),
-		new MonitorEventsTool(ringApi),
-	]);
+  registry.registerMultiple([
+    new ListDevicesTool(ringApi),
+    new GetDeviceInfoTool(ringApi),
+    new ArmDisarmAlarmTool(ringApi),
+    new GetCameraSnapshotTool(ringApi),
+    new TurnLightOnOffTool(ringApi),
+    new MonitorEventsTool(ringApi),
+  ]);
 
-	return registry;
+  return registry;
 }

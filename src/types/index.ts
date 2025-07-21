@@ -1,38 +1,38 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export interface TokenConfig {
-	refreshToken: string;
-	lastUpdated: string;
+  refreshToken: string;
+  lastUpdated: string;
 }
 
 export interface ServerOptions {
-	transport: "stdio" | "http";
-	port?: number;
-	host?: string;
+  transport: "stdio" | "http";
+  port?: number;
+  host?: string;
 }
 
 export interface DeviceInfo {
-	id: string | number;
-	name: string;
-	type: string;
-	model?: string;
-	categoryId?: number;
-	location: string;
-	batteryLevel?: number;
-	online: boolean;
-	hasLight?: boolean;
-	hasSiren?: boolean;
-	deviceType?: string;
+  id: string | number;
+  name: string;
+  type: string;
+  model?: string;
+  categoryId?: number;
+  location: string;
+  batteryLevel?: number;
+  online: boolean;
+  hasLight?: boolean;
+  hasSiren?: boolean;
+  deviceType?: string;
 }
 
 export interface EventInfo {
-	type: string;
-	timestamp: string;
-	device: string;
-	deviceId: string | number;
-	deviceType?: string;
-	notificationKind?: string;
-	data: unknown;
+  type: string;
+  timestamp: string;
+  device: string;
+  deviceId: string | number;
+  deviceType?: string;
+  notificationKind?: string;
+  data: unknown;
 }
 
 export type ToolResponse = CallToolResult;

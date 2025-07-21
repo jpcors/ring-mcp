@@ -2,33 +2,33 @@ import type { ServerOptions } from "../types/index.js";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: who cares
 export class CliParser {
-	static parseArgs(): ServerOptions {
-		const args = process.argv.slice(2);
-		const options: ServerOptions = { transport: "stdio" };
+  static parseArgs(): ServerOptions {
+    const args = process.argv.slice(2);
+    const options: ServerOptions = { transport: "stdio" };
 
-		for (let i = 0; i < args.length; i++) {
-			const arg = args[i];
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
 
-			if (arg === "--http") {
-				options.transport = "http";
-			} else if (arg?.startsWith("--port=")) {
-				options.port = parseInt(arg?.split("=")[1] || "", 10);
-			} else if (arg?.startsWith("--host=")) {
-				options.host = arg?.split("=")[1];
-			}
-		}
+      if (arg === "--http") {
+        options.transport = "http";
+      } else if (arg?.startsWith("--port=")) {
+        options.port = parseInt(arg?.split("=")[1] || "", 10);
+      } else if (arg?.startsWith("--host=")) {
+        options.host = arg?.split("=")[1];
+      }
+    }
 
-		// Validate port if provided
-		if (options.port && (options.port < 1 || options.port > 65535)) {
-			console.error("Error: Port must be between 1 and 65535");
-			process.exit(1);
-		}
+    // Validate port if provided
+    if (options.port && (options.port < 1 || options.port > 65535)) {
+      console.error("Error: Port must be between 1 and 65535");
+      process.exit(1);
+    }
 
-		return options;
-	}
+    return options;
+  }
 
-	static showHelpAndExit(): void {
-		console.error(`
+  static showHelpAndExit(): void {
+    console.error(`
 Ring MCP Server
 
 Usage:
@@ -63,12 +63,12 @@ Examples:
   npm start -- --http --port=8080            # HTTP transport on port 8080
   npm start -- --token=your_token --http     # HTTP transport with specific token
 `);
-		process.exit(0);
-	}
+    process.exit(0);
+  }
 
-	static checkForHelp(): void {
-		if (process.argv.includes("--help") || process.argv.includes("-h")) {
-			CliParser.showHelpAndExit();
-		}
-	}
+  static checkForHelp(): void {
+    if (process.argv.includes("--help") || process.argv.includes("-h")) {
+      CliParser.showHelpAndExit();
+    }
+  }
 }
